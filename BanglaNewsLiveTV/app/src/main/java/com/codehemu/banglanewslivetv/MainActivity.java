@@ -1,6 +1,10 @@
 package com.codehemu.banglanewslivetv;
 
 
+import android.annotation.SuppressLint;
+
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -8,13 +12,18 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.Uri;
-import android.os.AsyncTask;
+
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.LinearLayout;
+
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -36,6 +45,8 @@ import com.codehemu.banglanewslivetv.models.Channel;
 import com.codehemu.banglanewslivetv.models.Common;
 import com.codehemu.banglanewslivetv.models.InAppUpdate;
 import com.codehemu.banglanewslivetv.services.ChannelDataService;
+import com.codehemu.banglanewslivetv.services.ShortDataAsync;
+import com.codehemu.banglanewslivetv.services.ShortDesAsync;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.MobileAds;
@@ -44,21 +55,16 @@ import com.google.android.play.core.review.ReviewInfo;
 import com.google.android.play.core.review.ReviewManager;
 import com.google.android.play.core.review.ReviewManagerFactory;
 import com.google.android.play.core.tasks.Task;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
-
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
     AdView adView, adView1,adView2;
+    LinearLayout linearLayout;
     public static final String TAG = "TAG";
     RecyclerView newsChannelList,newsChannelList2,newsChannelList3;
     ChannelAdopters newsChannelAdopters,newsChannelAdopters2,newsChannelAdopters3;
@@ -73,8 +79,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     String appsName, packageName;
     ReviewManager manager;
     ReviewInfo reviewInfo;
-    TextView more_bengali,more_hindi;
-    Button ePaper,englishNews,topNews,RateBtn,aboutBtn,shareBtn;
+    TextView more_bengali,more_hindi,email_click;
+    Button ePaper,englishNews,topNews,RateBtn,aboutBtn,shareBtn,setting,moreApp;
     private InAppUpdate inAppUpdate;
 
     @Override
@@ -107,13 +113,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         getListActivity2("no",getString(R.string.Bengali_news_json));
         getListActivity3("no",getString(R.string.Hindi_news_json));
 
-        adsDisplay();
+        MobileAds.initialize(this, initializationStatus -> {});
+        adView = findViewById(R.id.adView);
+        adView1 = findViewById(R.id.adView1);
+        adView2 = findViewById(R.id.adView2);
+
         RefreshLayout();
         RequestReviewInfo();
         moreButton();
-
-        new webScript().execute();
-
 
     }
 
@@ -141,6 +148,54 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         aboutBtn.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, AboutActivity.class)));
         shareBtn = findViewById(R.id.shareBtn);
         shareBtn.setOnClickListener(v -> LinkShareApp());
+
+        moreApp = findViewById(R.id.moreApp);
+        moreApp.setOnClickListener(v -> openLink("https://play.google.com/store/apps/dev?id=7464231534566513633"));
+
+        setting = findViewById(R.id.setting);
+        setting.setOnClickListener(v -> {
+            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+            View view = getLayoutInflater().inflate(R.layout.dialog_rss,null);
+            builder.setIcon(R.drawable.shorts);
+            builder.setTitle(R.string.short_categories);
+            Spinner spinner = (Spinner) view.findViewById(R.id.spinner);
+            ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_spinner_item,MainActivity.this.getResources().getStringArray(R.array.rssList));
+            arrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            spinner.setAdapter(arrayAdapter);
+            Button button = (Button) view.findViewById(R.id.save);
+            Button button1 = (Button) view.findViewById(R.id.back);
+            SharedPreferences sharedPreferences = getSharedPreferences("BigBengaliJson",Context.MODE_PRIVATE);
+            String rssPosition = sharedPreferences.getString("rss","noValue");
+            if (!rssPosition.equals("noValue")){
+                spinner.setSelection(Integer.parseInt(rssPosition));
+            }
+            builder.setView(view);
+            AlertDialog mDialog =  builder.create();
+            mDialog.show();
+
+            button.setOnClickListener(v1 -> {
+                if (spinner.getSelectedItemPosition()!=0){
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.putString("rss",String.valueOf(spinner.getSelectedItemPosition()));
+                    editor.apply();
+                    Toast.makeText(MainActivity.this, spinner.getSelectedItem().toString(), Toast.LENGTH_SHORT).show();
+                    if (Common.isConnectToInternet(MainActivity.this)) {
+                        new ShortDataAsync(MainActivity.this).execute();
+                        try {
+                            Thread.sleep(2000);
+                            new ShortDesAsync(MainActivity.this).execute();
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                        }
+                    }
+                    mDialog.dismiss();
+                }
+
+            });
+
+            button1.setOnClickListener(v12 -> mDialog.dismiss());
+        });
+
     }
 
     private void openListingActivity(String activity) {
@@ -160,10 +215,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             RateMe();
         }
         if (item.getItemId() == R.id.shorts) {
-            startActivity(new Intent(MainActivity.this, ShortActivity.class));
+            SharedPreferences getShared = getSharedPreferences("shorts", MODE_PRIVATE);
+            String JsonValueEdit = getShared.getString("edit","noValue");
+            if(!JsonValueEdit.equals("noValue")){
+                startActivity(new Intent(MainActivity.this, ShortActivity.class));
+            }
         }
         return super.onOptionsItemSelected(item);
     }
+
+
 
     private void RateMe(){
         if (reviewInfo != null){
@@ -185,7 +246,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }else {
                 Toast.makeText(this, "Not Review", Toast.LENGTH_SHORT).show();
             }
-
         });
     }
     @Override
@@ -201,6 +261,26 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     putExtra("title","Privacy Policy")
                     .putExtra("url",getString(R.string.policy_url)));
         }
+        if (item.getItemId() == R.id.disclaimer) {
+            final Dialog dialog = new Dialog(MainActivity.this); // Context, this, etc.
+            dialog.setContentView(R.layout.activity_disclaimer);
+            linearLayout = dialog.findViewById(R.id.dismiss);
+            linearLayout.setOnClickListener(v -> dialog.cancel());
+            email_click = dialog.findViewById(R.id.email_click);
+
+            email_click.setOnClickListener(v -> {
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                String emailID = getString(R.string.my_email);
+                String AppNAME = getString(R.string.app_name);
+                Uri data = Uri.parse("mailto:"
+                        + emailID
+                        + "?subject=" +AppNAME+ " Feedback" + "&body=" + "");
+                intent.setData(data);
+                startActivity(intent);
+            });
+
+            dialog.show();
+        }
 
         if (item.getItemId() == R.id.share) {
             LinkShareApp();
@@ -208,6 +288,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         if (item.getItemId() == R.id.rate) {
             LinkRateUs();
+        }
+        if (item.getItemId() == R.id.more) {
+            openLink("https://play.google.com/store/apps/dev?id=7464231534566513633");
         }
         if (item.getItemId() == R.id.about) {
             startActivity(new Intent(MainActivity.this, AboutActivity.class));
@@ -229,8 +312,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         share.setType("text/plain");
         share.putExtra("android.intent.extra.SUBJECT", MainActivity.this.appsName);
         String APP_Download_URL = "https://play.google.com/store/apps/details?id=" + MainActivity.this.packageName;
-        share.putExtra("android.intent.extra.TEXT", MainActivity.this.appsName + " - এপ্সটি ডাউনলোড করতে নিচের লিংকে যান\n\n" + APP_Download_URL);
-        MainActivity.this.startActivity(Intent.createChooser(share, "শেয়ার করুন"));
+        share.putExtra("android.intent.extra.TEXT", MainActivity.this.appsName + getString(R.string.download_it) + APP_Download_URL);
+        MainActivity.this.startActivity(Intent.createChooser(share, getString(R.string.share_it)));
     }
 
     private void LinkRateUs() {
@@ -255,7 +338,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mSwipeRefreshLayout = findViewById(R.id.refresh_app);
         mSwipeRefreshLayout.setOnRefreshListener(() -> {
             mSwipeRefreshLayout.setRefreshing(false);
-            adsDisplay();
             getListActivity1("yes",getString(R.string.Bengali_banner_json));
             getListActivity2("yes",getString(R.string.Bengali_news_json));
             getListActivity3("yes",getString(R.string.Hindi_news_json));
@@ -287,7 +369,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
 
-    public void getListActivity1(String refresh,String url) {
+    @SuppressLint("NotifyDataSetChanged")
+    public void getListActivity1(String refresh, String url) {
         newsChannelList = findViewById(R.id.SliderList_1);
         newsChannelList.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
 
@@ -295,6 +378,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         newsChannelAdopters = new ChannelAdopters(this, newsChannels, "big"){
             @Override
             public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+                AdRequest adRequest = new AdRequest.Builder().build();
+                adView.loadAd(adRequest);
                 super.onBindViewHolder(holder, position);
             }
 
@@ -331,6 +416,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     Log.d(TAG, "onErrorResponse: " + error);
                     return null;
                 }
+                @SuppressLint("NotifyDataSetChanged")
                 @Override
                 public void onResponse(JSONArray response) {
                     SharedPreferences sharedPreferences = MainActivity.this.getSharedPreferences("BigBengaliJson",Context.MODE_PRIVATE);
@@ -398,13 +484,23 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     }
 
-    public void getListActivity2(String refresh,String url) {
+    @SuppressLint("NotifyDataSetChanged")
+    public void getListActivity2(String refresh, String url) {
         newsChannelList2 = findViewById(R.id.SliderList_2);
         newsChannelList2.setLayoutManager(new GridLayoutManager(this, 4, LinearLayoutManager.VERTICAL, false));
         newsChannels2 = new ArrayList<>();
+        final Dialog dialog = new Dialog(MainActivity.this); // Context, this, etc.
+        dialog.setContentView(R.layout.preparing_loading);
+        dialog.show();
         newsChannelAdopters2 = new ChannelAdopters(this, newsChannels2, "small"){
             @Override
             public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+                AdRequest adRequest1 = new AdRequest.Builder().build();
+                dialog.cancel();
+                adView1.loadAd(adRequest1);
+                if (Common.isConnectToInternet(MainActivity.this)) {
+                    new ShortDesAsync(MainActivity.this).execute();
+                }
                 super.onBindViewHolder(holder, position);
             }
         };
@@ -421,7 +517,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 }
                 @Override
                 public void onResponse(JSONArray response) {
-                //    Log.d(TAG, "onErrorResponse: " + response.toString());
+                    //    Log.d(TAG, "onErrorResponse: " + response.toString());
                     SharedPreferences sharedPreferences = MainActivity.this.getSharedPreferences("BengaliJson",Context.MODE_PRIVATE);
                     SharedPreferences.Editor editor = sharedPreferences.edit();
                     editor.putString("str",response.toString());
@@ -437,6 +533,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     Log.d(TAG, "onErrorResponse: " + error);
                     return null;
                 }
+                @SuppressLint("NotifyDataSetChanged")
                 @Override
                 public void onResponse(JSONArray response) {
                     SharedPreferences sharedPreferences = MainActivity.this.getSharedPreferences("BengaliJson",Context.MODE_PRIVATE);
@@ -504,13 +601,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     }
 
-    public void getListActivity3(String refresh,String url) {
+    @SuppressLint("NotifyDataSetChanged")
+    public void getListActivity3(String refresh, String url) {
         newsChannelList3 = findViewById(R.id.SliderList_3);
         newsChannelList3.setLayoutManager(new GridLayoutManager(this, 4, LinearLayoutManager.VERTICAL, false));
         newsChannels3 = new ArrayList<>();
         newsChannelAdopters3 = new ChannelAdopters(this, newsChannels3, "small"){
             @Override
             public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+                AdRequest adRequest2 = new AdRequest.Builder().build();
+                adView2.loadAd(adRequest2);
                 super.onBindViewHolder(holder, position);
             }
         };
@@ -527,7 +627,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 }
                 @Override
                 public void onResponse(JSONArray response) {
-                //    Log.d(TAG, "onErrorResponse: " + response.toString());
                     SharedPreferences sharedPreferences = MainActivity.this.getSharedPreferences("HindiJson",Context.MODE_PRIVATE);
                     SharedPreferences.Editor editor = sharedPreferences.edit();
                     editor.putString("str",response.toString());
@@ -542,6 +641,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     Log.d(TAG, "onErrorResponse: " + error);
                     return null;
                 }
+                @SuppressLint("NotifyDataSetChanged")
                 @Override
                 public void onResponse(JSONArray response) {
                     SharedPreferences sharedPreferences = MainActivity.this.getSharedPreferences("HindiJson",Context.MODE_PRIVATE);
@@ -610,20 +710,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
 
-    public void adsDisplay(){
-        MobileAds.initialize(this, initializationStatus -> {
-        });
-
-        adView = findViewById(R.id.adView);
-        adView1 = findViewById(R.id.adView1);
-        adView2 = findViewById(R.id.adView2);
-
-
-        AdRequest adRequest = new AdRequest.Builder().build();
-        adView.loadAd(adRequest);
-        adView1.loadAd(adRequest);
-        adView2.loadAd(adRequest);
-    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
@@ -642,161 +728,5 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onDestroy();
         inAppUpdate.onDestroy();
     }
-
-    private class webScript extends AsyncTask<Void , Void, Void> {
-        @Override
-        protected Void doInBackground(Void... voids) {
-
-            SharedPreferences getShared = getSharedPreferences("shorts", MODE_PRIVATE);
-
-            String JsonValue = getShared.getString("row","noValue");
-
-            String JsonValueEdit = getShared.getString("edit","noValue");
-
-            if (!JsonValue.equals("noValue") && !JsonValueEdit.equals("noValue") ){
-                try {
-                    JSONArray jsonArray = new JSONArray(JsonValue);
-                    JSONArray jsonArrayEdit = new JSONArray(JsonValueEdit);
-
-                    JSONObject row = jsonArray.getJSONObject(0);
-                    JSONObject edit = jsonArrayEdit.getJSONObject(0);
-
-                    if (!row.getString("title").equals(edit.getString("title"))||
-                            edit.getString("desc").equals("")){
-                        JSONArray arr = new JSONArray();
-                        HashMap<String, JSONObject> map = new HashMap<>();
-                        Log.d(TAG, "1onErrorResponse: " + "desc");
-                        Document document;
-                        String desc;
-                        for (int i = 0; i < 20; i++){
-                            JSONObject channelData = jsonArray.getJSONObject(i);
-                            document = Jsoup.connect(channelData.getString("link")).get();
-                            Elements rightSec = document.select(".khbr_rght_sec").select("p");
-                            Elements container = document.select(".container").select("p");
-                            Elements slider_con = document.select(".slider_con").select("p");
-                            Elements all_p = document.select("p");
-                            if (rightSec.first()!= null){
-                                if (rightSec.text().length() > 400){
-                                    desc = rightSec.text().substring(0,400);
-                                }else {
-                                    desc = rightSec.text();
-                                }
-                            }else if (container.first()!=null){
-                                if (container.text().length() > 400){
-                                    desc = container.text().substring(0,400);
-                                }else {
-                                    desc = container.text();
-                                }
-                            }else if (slider_con.first()!=null){
-                                if (slider_con.text().length() > 401){
-                                    desc = slider_con.text().substring(0,400);
-                                }else {
-                                    desc = slider_con.text();
-                                }
-                            }else if (all_p.first()!=null){
-                                if (all_p.text().length() > 400){
-                                    desc = all_p.text().substring(0,400);
-                                }else {
-                                    desc = all_p.text();
-                                }
-                            }else {
-                                desc = getString(R.string.sorry_desc);
-                            }
-                            JSONObject json = new JSONObject();
-
-                            json.put("id",i);
-                            json.put("title",channelData.getString("title"));
-                            json.put("desc",desc);
-                            json.put("link",channelData.getString("link"));
-                            json.put("thumbnail",channelData.getString("thumbnail"));
-                            map.put("json" + i, json);
-                            arr.put(map.get("json" + i));
-                            Log.d(TAG, "1onErrorResponse: " + desc);
-                        }
-                        SharedPreferences sharedPreferences = getSharedPreferences("shorts", Context.MODE_PRIVATE);
-                        SharedPreferences.Editor editor = sharedPreferences.edit();
-                        editor.putString("edit",arr.toString());
-                        editor.apply();
-                    }
-
-                } catch (JSONException e) {
-                    //throw new RuntimeException(e);
-                } catch (IOException e) {
-                    // throw new RuntimeException(e);
-                }
-            }
-
-            if (!JsonValue.equals("noValue") && JsonValueEdit.equals("noValue")){
-                try {
-                    JSONArray arr = new JSONArray();
-                    HashMap<String, JSONObject> map = new HashMap<>();
-
-                    JSONArray jsonArray = new JSONArray(JsonValue);
-                    Document document;
-                    String desc;
-                    for (int i = 0; i < 20; i++){
-                        JSONObject channelData = jsonArray.getJSONObject(i);
-                        document = Jsoup.connect(channelData.getString("link")).get();
-                        Elements rightSec = document.select(".khbr_rght_sec").select("p");
-                        Elements container = document.select(".container").select("p");
-                        Elements slider_con = document.select(".slider_con").select("p");
-                        Elements all_p = document.select("p");
-                        if (rightSec.first()!= null){
-                            if (rightSec.text().length() > 400){
-                                desc = rightSec.text().substring(0,400);
-                            }else {
-                                desc = rightSec.text();
-                            }
-                        }else if (container.first()!=null){
-                            if (container.text().length() > 400){
-                                desc = container.text().substring(0,400);
-                            }else {
-                                desc = container.text();
-                            }
-                        }else if (slider_con.first()!=null){
-                            if (slider_con.text().length() > 401){
-                                desc = slider_con.text().substring(0,400);
-                            }else {
-                                desc = slider_con.text();
-                            }
-                        }else if (all_p.first()!=null){
-                            if (all_p.text().length() > 400){
-                                desc = all_p.text().substring(0,400);
-                            }else {
-                                desc = all_p.text();
-                            }
-                        }else {
-                            desc = getString(R.string.sorry_desc);
-                        }
-
-
-                        JSONObject json = new JSONObject();
-
-                        json.put("id",i);
-                        json.put("title",channelData.getString("title"));
-                        json.put("desc",desc);
-                        json.put("link",channelData.getString("link"));
-                        json.put("thumbnail",channelData.getString("thumbnail"));
-                        map.put("json" + i, json);
-                        arr.put(map.get("json" + i));
-                        Log.d(TAG, "1onErrorResponse: " + desc);
-                    }
-                    SharedPreferences sharedPreferences = getSharedPreferences("shorts", Context.MODE_PRIVATE);
-                    SharedPreferences.Editor editor = sharedPreferences.edit();
-                    editor.putString("edit",arr.toString());
-                    Log.d(TAG, "1onsResponse: " + arr);
-                    editor.apply();
-                } catch (JSONException | IOException e) {
-                    Log.d(TAG, "1onErrorResponse: " + e);
-                }
-
-            }
-
-            return null;
-        }
-
-
-    }
-
 
 }

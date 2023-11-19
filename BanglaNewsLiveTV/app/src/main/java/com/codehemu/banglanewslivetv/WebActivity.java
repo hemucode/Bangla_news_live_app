@@ -1,6 +1,7 @@
 package com.codehemu.banglanewslivetv;
 
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -24,23 +25,20 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.codehemu.banglanewslivetv.models.Common;
-import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.AdView;
-import com.google.android.gms.ads.MobileAds;
-import com.google.android.gms.ads.initialization.InitializationStatus;
-import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
 import com.monstertechno.adblocker.AdBlockerWebView;
 import com.monstertechno.adblocker.util.AdBlocker;
 
+import java.util.Objects;
+
 public class WebActivity extends AppCompatActivity {
     WebView web;
-    public static final String TAG = "TAG";
+
     ProgressBar progressBar;
-    private AdView adView;
     SwipeRefreshLayout mSwipeRefreshLayout;
     LinearLayout linearLayout;
     Button button1,button2;
 
+    @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,7 +51,7 @@ public class WebActivity extends AppCompatActivity {
 
         button2 = findViewById(R.id.button4);
 
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
 
         Bundle extras = getIntent().getExtras();
 
@@ -63,23 +61,16 @@ public class WebActivity extends AppCompatActivity {
             String url = extras.getString("url");
 
             getSupportActionBar().setTitle(title);
+            assert url != null;
             web.loadUrl(url);
 
-            button1.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Intent intent2 = new Intent("android.intent.action.VIEW");
-                    intent2.setData(Uri.parse(url));
-                    WebActivity.this.startActivity(intent2);
-                }
+            button1.setOnClickListener(v -> {
+                Intent intent2 = new Intent("android.intent.action.VIEW");
+                intent2.setData(Uri.parse(url));
+                WebActivity.this.startActivity(intent2);
             });
 
-            button2.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    onBackPressed();
-                }
-            });
+            button2.setOnClickListener(v -> onBackPressed());
             new AdBlockerWebView.init(this).initializeWebView(web);
             web.getSettings().setJavaScriptEnabled(true);
             web.getSettings().setLoadWithOverviewMode(true);
@@ -120,49 +111,28 @@ public class WebActivity extends AppCompatActivity {
 
         }
 
-        loadFacebookAds();
+
 
         mSwipeRefreshLayout = findViewById(R.id.refresh_app);
 
-        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                mSwipeRefreshLayout.setRefreshing(false);
-                web.loadUrl("javascript:window.location.reload( true )");
-                loadFacebookAds();
-            }
+        mSwipeRefreshLayout.setOnRefreshListener(() -> {
+            mSwipeRefreshLayout.setRefreshing(false);
+            web.loadUrl("javascript:window.location.reload( true )");
         });
 
     }
 
-    public void loadFacebookAds() {
-        if (adView != null) {
-            adView.destroy();
-        }
-        MobileAds.initialize(this, new OnInitializationCompleteListener() {
-            @Override
-            public void onInitializationComplete(InitializationStatus initializationStatus) {
-            }
-        });
-
-        adView = findViewById(R.id.adView);
-        AdRequest adRequest = new AdRequest.Builder().build();
-        adView.loadAd(adRequest);
-
-    }
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        if (item.getItemId() == android.R.id.home) {
-            onBackPressed();
-        }
+        if (item.getItemId() == android.R.id.home) onBackPressed();
         return super.onOptionsItemSelected(item);
     }
 
     private class MyChrome extends WebChromeClient {
         private View mCustomView;
         private WebChromeClient.CustomViewCallback mCustomViewCallback;
-        protected FrameLayout mFullscreenContainer;
+
         private int mOriginalOrientation;
         private int mOriginalSystemUiVisibility;
 
@@ -203,13 +173,13 @@ public class WebActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         web.saveState(outState);
     }
 
     @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+    protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
         web.restoreState(savedInstanceState);
     }

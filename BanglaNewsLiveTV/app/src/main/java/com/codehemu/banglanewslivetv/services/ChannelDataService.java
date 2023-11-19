@@ -33,7 +33,6 @@ public class ChannelDataService {
             @Override
             public void onResponse(JSONArray response) {
                 onDataResponse.onResponse(response);
-                //Log.d(TAG,"1onResponse: " + response.toString());
             }
         }, new Response.ErrorListener() {
             @Override

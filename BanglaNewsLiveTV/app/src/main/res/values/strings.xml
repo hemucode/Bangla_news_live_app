@@ -47,4 +47,55 @@
     <string name="website_link">Website Link</string>
     <string name="sa">Website Link</string>
     <string name="as">Channel Description</string>
+    <string name="share_it">শেয়ার</string>
+    <string name="more_app">More App</string>
+    <string name="disclaimer">Disclaimer</string>
+    <string name="download_it">" - অ্যাপটি ডাউনলোড করতে নিচের লিঙ্কে যান\n\n"</string>
+    <string name="dis_data">this News apps does not stream any of the channels included in its website/ app, All the streaming links are from third parties available free on the internet.If any one founds that we are violating by broadcasting any copyright protected channel email us the channel name,based on your email request.</string>
+    <string name="dis_data2">AS of now This all News Channels are streamed by Hindi News. We are not responsible for its Contents.</string>
+    <string name="live_not">এই চ্যানেলটি এখনও লাইভ হয়নি, আপনি চাইলে ইউটিউবে লাইভ দেখতে পারেন</string>
+    <string name="head_line">Head Line</string>
+    <string name="setting">Setting</string>
+    <string name="short_categories">Short categories would you like to see?</string>
+
+    <string-array name="rssList">
+        <item>Choose a category…</item>
+        <item>IPL</item>
+        <item>কোচবিহার</item>
+        <item>আলিপুরদুয়ার</item>
+        <item>দেশ</item>
+        <item>জলপাইগুড়ি</item>
+        <item>দক্ষিণ দিনাজপুর</item>
+        <item>রাজনীতি</item>
+        <item>কলকাতা</item>
+        <item>হাওড়া</item>
+        <item>হুগলি</item>
+        <item>চাকরি</item>
+        <item>বাংলাদেশ</item>
+        <item>বিদেশ</item>
+        <item>কেরিয়ার</item>
+        <item>খেলা</item>
+        <item>দক্ষিণ ২৪ পরগনা</item>
+    </string-array>
+
+    <string-array name="rssURL">
+        <item>https://bengali.news18.com/commonfeeds/v1/ben/rss/national.xml</item>
+        <item>https://bengali.news18.com/commonfeeds/v1/ben/rss/ipl.xml</item>
+        <item>https://bengali.news18.com/commonfeeds/v1/ben/rss/cooch-behar.xml</item>
+        <item>https://bengali.news18.com/commonfeeds/v1/ben/rss/alipurduar.xml</item>
+        <item>https://bengali.news18.com/commonfeeds/v1/ben/rss/national.xml</item>
+        <item>https://bengali.news18.com/commonfeeds/v1/ben/rss/jalpaiguri.xml</item>
+        <item>https://bengali.news18.com/commonfeeds/v1/ben/rss/dakshin-dinajpur.xml</item>
+        <item>https://bengali.news18.com/commonfeeds/v1/ben/rss/politics.xml</item>
+        <item>https://bengali.news18.com/commonfeeds/v1/ben/rss/kolkata.xml</item>
+        <item>https://bengali.news18.com/commonfeeds/v1/ben/rss/howrah.xml</item>
+        <item>https://bengali.news18.com/commonfeeds/v1/ben/rss/hooghly.xml</item>
+        <item>https://bengali.news18.com/commonfeeds/v1/ben/rss/job.xml</item>
+        <item>https://bengali.news18.com/commonfeeds/v1/ben/rss/international/bangladesh.xml</item>
+        <item>https://bengali.news18.com/commonfeeds/v1/ben/rss/international.xml</item>
+        <item>https://bengali.news18.com/commonfeeds/v1/ben/rss/education-career/career.xml</item>
+        <item>https://bengali.news18.com/commonfeeds/v1/ben/rss/sports.xml</item>
+        <item>https://bengali.news18.com/commonfeeds/v1/ben/rss/south-24-parganas.xml</item>
+    </string-array>
+    
 </resources>
