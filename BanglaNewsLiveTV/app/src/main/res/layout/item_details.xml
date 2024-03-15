@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
-
 
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
@@ -30,10 +30,12 @@
                 android:backgroundTint="#FF0000"
                 android:text="@string/live_now"
                 android:textColor="#FFFFFF"
-                app:icon="@drawable/ic_motion_video"
+                android:drawableTint="@color/white"
+                android:drawableStart="@drawable/ic_motion_video"
                 app:iconTint="#FFFFFF"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="parent"
+                tools:ignore="TextContrastCheck" />
 
             <androidx.cardview.widget.CardView
                 android:id="@+id/cardView3"
@@ -46,11 +48,21 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent">
 
-                <ImageView
-                    android:id="@+id/channelThumbnail"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="centerCrop"/>
+                    <LinearLayout
+                        android:id="@+id/shimmerFrame"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@color/shimmerColor">
+
+                        <com.google.android.material.imageview.ShapeableImageView
+                            android:id="@+id/channelThumbnail"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scaleType="fitXY"
+                            tools:ignore="ContentDescription,ImageContrastCheck" />
+
+                    </LinearLayout>
+
 
             </androidx.cardview.widget.CardView>
 
@@ -60,7 +72,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="52dp"
-                android:text="Channel Name"
+                android:text="@string/channel_name"
                 android:textSize="25sp"
                 android:textStyle="bold"
                 app:layout_constraintStart_toEndOf="@+id/cardView3"
@@ -109,7 +121,9 @@
                             android:layout_width="30dp"
                             android:layout_height="match_parent"
                             android:layout_weight="1"
-                            app:srcCompat="@drawable/web" />
+                            app:srcCompat="@drawable/web"
+                            app:tint="?attr/colorAccent"
+                            android:importantForAccessibility="no" />
 
                         <TextView
                             android:id="@+id/textView8"
@@ -130,7 +144,8 @@
                         android:textColor="#00AEFF"
                         android:textSize="14sp"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/linearLayout" />
+                        app:layout_constraintTop_toBottomOf="@+id/linearLayout"
+                        tools:ignore="HardcodedText,TextContrastCheck" />
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -165,7 +180,9 @@
                             android:layout_width="30dp"
                             android:layout_height="match_parent"
                             android:layout_weight="1"
-                            app:srcCompat="@drawable/ic_link" />
+                            app:srcCompat="@drawable/ic_link"
+                            app:tint="?attr/colorAccent"
+                            android:importantForAccessibility="no" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -185,7 +202,8 @@
                         android:textColor="#00AEFF"
                         android:textSize="14sp"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/linearLayout1" />
+                        app:layout_constraintTop_toBottomOf="@+id/linearLayout1"
+                        tools:ignore="HardcodedText,TextContrastCheck" />
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -220,7 +238,9 @@
                             android:layout_height="match_parent"
                             android:layout_weight="1"
                             android:scaleType="centerCrop"
-                            app:srcCompat="@drawable/ic_video" />
+                            app:srcCompat="@drawable/ic_video"
+                            app:tint="?attr/colorAccent"
+                            android:importantForAccessibility="no" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -240,7 +260,8 @@
                         android:textColor="#00AEFF"
                         android:textSize="14sp"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/linearLayout12" />
+                        app:layout_constraintTop_toBottomOf="@+id/linearLayout12"
+                        tools:ignore="HardcodedText,TextContrastCheck" />
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -274,7 +295,9 @@
                             android:layout_width="30dp"
                             android:layout_height="match_parent"
                             android:layout_weight="1"
-                            app:srcCompat="@drawable/ic_account_box" />
+                            app:tint="?attr/colorAccent"
+                            app:srcCompat="@drawable/ic_account_box"
+                            android:importantForAccessibility="no" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -294,7 +317,8 @@
                         android:textColor="#00AEFF"
                         android:textSize="14sp"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/linearLayout11" />
+                        app:layout_constraintTop_toBottomOf="@+id/linearLayout11"
+                        tools:ignore="HardcodedText,TextContrastCheck" />
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -329,7 +353,9 @@
                             android:layout_width="30dp"
                             android:layout_height="match_parent"
                             android:layout_weight="1"
-                            app:srcCompat="@drawable/ic_mail" />
+                            app:srcCompat="@drawable/ic_mail"
+                            app:tint="?attr/colorAccent"
+                            android:importantForAccessibility="no" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -349,7 +375,8 @@
                         android:textColor="#00AEFF"
                         android:textSize="14sp"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/linearLayout10" />
+                        app:layout_constraintTop_toBottomOf="@+id/linearLayout10"
+                        tools:ignore="HardcodedText,TextContrastCheck" />
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
 

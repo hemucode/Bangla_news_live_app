@@ -1,8 +1,10 @@
 package com.codehemu.banglanewslivetv.models;
 
+import androidx.annotation.NonNull;
+
 import java.io.Serializable;
 
-public class Channel implements Serializable {
+public class Channel{
     private int id;
     private String name;
     private String description;
@@ -103,6 +105,7 @@ public class Channel implements Serializable {
         this.contact = contact;
     }
 
+    @NonNull
     @Override
     public String toString() {
         return "Channel{" +

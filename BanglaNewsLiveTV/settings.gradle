@@ -16,3 +16,4 @@ dependencyResolutionManagement {
 }
 rootProject.name = "Bangla News Live TV"
 include ':app'
+include ':nativetemplates'
